@@ -27,6 +27,18 @@ lsl_sample_t *lsl_outlet_current_sample(lsl_outlet_t *outlet) {
     return (lsl_sample_t *) outlet->sample_buffer;
 }
 
+int lsl_outlet_push_current_sample(lsl_outlet_t *outlet) {
+    if (outlet->callbacks.sample_available) {
+        RETURN_ON_ERROR(outlet->callbacks.sample_available(
+            outlet->callbacks.ctx,
+            outlet,
+            lsl_outlet_current_sample(outlet)
+        ), "Error in sample_available callback.");
+    }
+
+    return 0;
+}
+
 int lsl_outlet_set_channel_value(lsl_outlet_t *outlet, size_t channel, lsl_sample_value_t value) {
     RETURN_ON_ERROR(ASSERT(channel < outlet->config.channel_info.num_channels), "Channel index %zu out of range.", channel);
     lsl_outlet_current_sample(outlet)->values[channel] = value;

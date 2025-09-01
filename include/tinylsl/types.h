@@ -35,3 +35,5 @@ typedef struct {
     lsl_channel_order_t order;
     size_t num_channels;
 } lsl_channel_info_t;
+
+typedef uint8_t lsl_uuid_t[16];
