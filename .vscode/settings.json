@@ -4,6 +4,13 @@
         ".dockerignore": "ignore",
         "sstream": "c",
         "cstdlib": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "test_macros.h": "c",
+        "typeindex": "c",
+        "typeinfo": "c",
+        "chrono": "c",
+        "functional": "c",
+        "numbers": "c",
+        "format": "c"
     }
 }
