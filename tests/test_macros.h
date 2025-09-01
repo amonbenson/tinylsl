@@ -88,9 +88,11 @@ int main(int argc, const char *argv[]) { \
         printf("\e[1;30;42m PASSED \e[0m\r\n"); \
         printf("Test Suites: \e[1;32m%d passed\e[0m, %d total.\r\n", suites_total - suites_failed, suites_total); \
         printf("Tests:       \e[1;32m%d passed\e[0m, %d total.\r\n", tests_total - tests_failed, tests_total); \
+        return 0; \
     } else { \
         printf("\e[1;30;41m FAILED \e[0m\r\n"); \
         printf("Test Suites: %d passed, \e[1;31m%d failed\e[0m, %d total.\r\n", suites_total - suites_failed, suites_failed, suites_total); \
         printf("Tests:       %d passed, \e[1;31m%d failed\e[0m, %d total.\r\n", tests_total - tests_failed, tests_failed, tests_total); \
+        return 1; \
     } \
 }

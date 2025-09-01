@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include "tinylsl/types.h"
 
-#define LSL_TIMESTAMP_DEDUCED (-1.0 / 0.0)
+#define LSL_DEDUCED_TIMESTAMP (-1.0 / 0.0)
 
 typedef union {
     float float32_value;
