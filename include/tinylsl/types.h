@@ -29,3 +29,9 @@ typedef union {
     int8_t value_int8;
     int64_t value_int64;
 } lsl_integral_value_t;
+
+typedef struct {
+    lsl_channel_format_t format;
+    lsl_channel_order_t order;
+    size_t num_channels;
+} lsl_channel_info_t;

@@ -15,33 +15,30 @@ typedef struct {
 typedef test_suite_t (*test_suite_run_t)(void);
 
 
-#define FAIL() do { \
+#define FAIL() {\
     __current_test_failed = 1; \
     __test_suite->num_failed++; \
     printf("\e[1;31m => Assertion failed at %s:%d:\e[0m\r\n", __FILE__, __LINE__); \
     continue; \
-} while (0)
+}
 
-#define EXPECT(expr) do { \
+#define EXPECT(expr) \
     if (!(expr)) { \
         printf("\e[1;31m => Expected '%s' to be true.\e[0m\r\n", __TEST_STRINGIFY(expr)); \
         FAIL(); \
-    } \
-} while (0)
+    }
 
-#define EXPECT_EQ(a, b) do { \
+#define EXPECT_EQ(a, b) \
     if ((a) != (b)) { \
         printf("\e[1;31m => Expected '%s' to equal '%s'.\e[0m\r\n", __TEST_STRINGIFY(a), __TEST_STRINGIFY(b)); \
         FAIL(); \
-    } \
-} while (0)
+    }
 
-#define EXPECT_NE(a, b) do { \
+#define EXPECT_NE(a, b) \
     if ((a) == (b)) { \
         printf("\e[1;31m => Expected '%s' not to equal '%s'.\e[0m\r\n", __TEST_STRINGIFY(a), __TEST_STRINGIFY(b)); \
         FAIL(); \
-    } \
-} while (0)
+    }
 
 #define __TEST_DECLARE_TEST(name) for( \
     int __loop_break = 0, __current_test_failed = 0; \
