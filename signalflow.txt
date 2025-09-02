@@ -4,13 +4,15 @@ on udp packet received:
     -> forward to generic handler
 
 on shortinfo received (fd, source_address, source_port, query):
-    for each outlet matching the query
+    for each outlet matching the query:
         send to source_address:source_port:
             XML
                 - outlet info
                 - tcp server port
 
 on streamfeed received (fd, params, version, stream uid)
+    find outlet with stream uid:
+        
 
 on tcp server port changed (tcp server port)
     store tcp server port

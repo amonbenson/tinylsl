@@ -42,13 +42,13 @@ int lsl_sample_serialize(const lsl_sample_t *sample, const lsl_channel_info_t *c
 
     // validate the buffer size
     const size_t required_len = 1 + (timestamp_deduced ? 0 : 8) + channel_info->num_channels * lsl_integral_sizes[channel_info->format];
-    RETURN_ON_ERROR(ASSERT(len >= required_len), "Buffer too small. Expected at least %zu bytes, but was %zu.", required_len, len);
+    TRY_OR_RETURN(TRY_ASSERT(len >= required_len), "Buffer too small. Expected at least %zu bytes, but was %zu.", required_len, len);
 
     // serialize the timestamp
     *buf++ = timestamp_deduced ? 1 : 2;
     if (!timestamp_deduced) {
         const lsl_sample_value_t timestamp_value = { .double64_value = sample->timestamp };
-        RETURN_ON_ERROR(lsl_sample_value_serialize(timestamp_value, &((lsl_channel_info_t) {
+        TRY_OR_RETURN(lsl_sample_value_serialize(timestamp_value, &((lsl_channel_info_t) {
             .format = LSL_DOUBLE64,
             .order = LSL_MSB_FIRST,
             .num_channels = 1,
@@ -58,7 +58,7 @@ int lsl_sample_serialize(const lsl_sample_t *sample, const lsl_channel_info_t *c
 
     // serialize each sample
     for (int i = 0; i < channel_info->num_channels; i++) {
-        RETURN_ON_ERROR(lsl_sample_value_serialize(sample->values[i], channel_info, buf), "Failed to serialize sample value.");
+        TRY_OR_RETURN(lsl_sample_value_serialize(sample->values[i], channel_info, buf), "Failed to serialize sample value.");
         buf += lsl_integral_sizes[channel_info->format];
     }
 

@@ -58,14 +58,14 @@ int str_to_uint16(const uint8_t *s, size_t len, uint16_t *out) {
     return 0;
 }
 
-size_t parse_line(const uint8_t **str, size_t *len, const uint8_t **line) {
+size_t lsl_parse_line(const uint8_t **str, size_t *len, const uint8_t **line) {
     PARSE_UNTIL(*str, *len, !(**str == '\r' || **str == '\n' || **str == '\t' || **str == ' '));
     *line = *str;
     PARSE_UNTIL(*str, *len, **str == '\r' || **str == '\n');
     return *str - *line;
 }
 
-size_t parse_word(const uint8_t **str, size_t *len, const uint8_t **word) {
+size_t lsl_parse_word(const uint8_t **str, size_t *len, const uint8_t **word) {
     PARSE_UNTIL(*str, *len, !(**str == '\r' || **str == '\n' || **str == '\t' || **str == ' '));
     *word = *str;
     PARSE_UNTIL(*str, *len, **str == '\r' || **str == '\n' || **str == '\t' || **str == ' ');
@@ -241,7 +241,7 @@ void handle_packet(int fd, uint32_t source_address, const uint8_t *str, size_t l
 
     // extract the command
     const uint8_t *method;
-    size_t method_len = parse_line(&str, &len, &method);
+    size_t method_len = lsl_parse_line(&str, &len, &method);
     if (method_len == 0) {
         fprintf(stderr, "no method received\r\n");
         return;
@@ -251,7 +251,7 @@ void handle_packet(int fd, uint32_t source_address, const uint8_t *str, size_t l
     if (strncmp((const char *) method, METHOD_SHORTINFO, method_len) == 0) {
         // parse query string
         const uint8_t *query;
-        size_t query_len = parse_line(&str, &len, &query);
+        size_t query_len = lsl_parse_line(&str, &len, &query);
         if (query_len == 0) {
             fprintf(stderr, "no query received\r\n");
             return;
@@ -259,7 +259,7 @@ void handle_packet(int fd, uint32_t source_address, const uint8_t *str, size_t l
 
         // parse port
         const uint8_t *source_port_str;
-        size_t source_port_str_len = parse_word(&str, &len, &source_port_str);
+        size_t source_port_str_len = lsl_parse_word(&str, &len, &source_port_str);
         if (source_port_str_len == 0) {
             fprintf(stderr, "no port received\r\n");
             return;
@@ -272,7 +272,7 @@ void handle_packet(int fd, uint32_t source_address, const uint8_t *str, size_t l
 
         // parse query id
         const uint8_t *query_id;
-        size_t query_id_len = parse_line(&str, &len, &query_id);
+        size_t query_id_len = lsl_parse_line(&str, &len, &query_id);
         if (query_id_len == 0) {
             fprintf(stderr, "no query id received\r\n");
             return;
@@ -290,7 +290,7 @@ void handle_packet(int fd, uint32_t source_address, const uint8_t *str, size_t l
         // parse the version
         uint16_t version = 100;
         const uint8_t *version_str;
-        size_t version_str_len = parse_word(&params, &params_len, &version_str);
+        size_t version_str_len = lsl_parse_word(&params, &params_len, &version_str);
         if (str_to_uint16(version_str, version_str_len, &version) != 0) {
             fprintf(stderr, "invalid version received\r\n");
             version = 100;
@@ -298,7 +298,7 @@ void handle_packet(int fd, uint32_t source_address, const uint8_t *str, size_t l
 
         // parse the stream uuid
         const uint8_t *stream_uid = NULL;
-        size_t stream_uid_len = parse_word(&params, &params_len, &stream_uid);
+        size_t stream_uid_len = lsl_parse_word(&params, &params_len, &stream_uid);
         if (stream_uid_len != 36) {
             fprintf(stderr, "invalid stream_uid received\r\n");
             stream_uid = NULL;
