@@ -19,10 +19,7 @@ typedef struct {
     const char *type;
     const char *source_id;
     double nominal_srate;
-    int version;
-    double created_at;
     lsl_uuid_t uid;
-    const char *hostname;
 } lsl_outlet_config_t;
 
 typedef struct lsl_outlet {

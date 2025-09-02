@@ -12,6 +12,7 @@
                 "-g",
                 "-Iinclude",
                 "-Itests",
+                "-DLOG_GLOBAL_LEVEL=LOG_LEVEL_TRACE",
                 "-o",
                 "build/tinylsl_test",
                 "**/*.c"

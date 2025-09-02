@@ -12,11 +12,12 @@ static int lsl_outlet_handle_sample_available(void *ctx, lsl_outlet_t *outlet, l
     return 0;
 }
 
-int lsl_create(lsl_t *lsl, const lsl_config_t *config, uint8_t *sample_buffer, size_t sample_buffer_len) {
+int lsl_create(lsl_t *lsl, const lsl_config_t *config) {
     lsl->config = *config;
+    lsl->callbacks = (lsl_callbacks_t) { 0 };
 
     // create the default outlet
-    TRY_OR_RETURN(lsl_outlet_create(&lsl->outlet, &lsl->config.outlet, sample_buffer, sample_buffer_len), "Failed to create outlet.");
+    TRY_OR_RETURN(lsl_outlet_create(&lsl->outlet, &lsl->config.outlet, config->sample_buffer, config->sample_buffer_len), "Failed to create outlet.");
     lsl->outlet.callbacks.sample_available = lsl_outlet_handle_sample_available;
 
     lsl->udp_fd = -1;
@@ -50,7 +51,7 @@ static int lsl_handle_shortinfo(lsl_t *lsl, uint32_t response_address, uint16_t 
         "<created_at>146235.8145968000</created_at>"
         "<uid>7e1900a9-c56e-442e-be9b-2a58c5953b84</uid>"
         "<session_id>default</session_id>"
-        "<hostname>%s</hostname>"
+        "<hostname>tinylsl</hostname>"
         "<v4address></v4address>"
         "<v4data_port>%u</v4data_port>"
         "<v4service_port>%u</v4service_port>"
@@ -68,7 +69,6 @@ static int lsl_handle_shortinfo(lsl_t *lsl, uint32_t response_address, uint16_t 
         outlet->config.source_id,
         outlet->config.nominal_srate,
         // outlet->config.uid, // TODO: convert to string
-        outlet->config.hostname,
         lsl->tcp_local_port,
         lsl->tcp_local_port,
         lsl->tcp_local_port,
@@ -78,14 +78,13 @@ static int lsl_handle_shortinfo(lsl_t *lsl, uint32_t response_address, uint16_t 
     TRY_OR_RETURN(TRY_ASSERT(response_len < sizeof(response)), "Response too large.");
 
     // send the response
+    LOG_DEBUG("LSL UDP SEND:\r\n%.*s\r\n\r\n", (int) response_len, response);
     TRY_OR_RETURN(EMIT(&lsl->callbacks, udp_send, lsl->udp_fd, response, response_len, response_address, response_port), "Failed to send response.");
 
     return 0;
 }
 
 static int lsl_handle_packet(lsl_t *lsl, const uint8_t *buf, size_t len, uint32_t remote_address, uint16_t remote_port) {
-    LOG_DEBUG("LSL RECV:\r\n%.*s\r\n\r\n", (int) len, buf);
-
     lsl_parser_t parser;
     lsl_parser_create(&parser, buf, len);
 
@@ -140,6 +139,8 @@ int lsl_udp_recv(lsl_t * lsl, int fd, const uint8_t *buf, size_t len, uint32_t r
     EMIT(&lsl->callbacks, lock);
 
     TRY_OR_CLEANUP(TRY_ASSERT(lsl->udp_fd == fd), "Incorrect file descriptor.");
+
+    LOG_DEBUG("LSL UDP RECV:\r\n%.*s\r\n\r\n", (int) len, buf);
     TRY_OR_CLEANUP(lsl_handle_packet(lsl, buf, len, remote_address, remote_port), "Failed to handle udp packet.");
 
     ret = 0;

@@ -10,6 +10,8 @@
 
 typedef struct {
     lsl_outlet_config_t outlet;
+    uint8_t *sample_buffer;
+    size_t sample_buffer_len;
 } lsl_config_t;
 
 typedef void (*lsl_lock_cb)(void *ctx);
@@ -40,7 +42,7 @@ typedef struct {
     uint16_t tcp_remote_port;
 } lsl_t;
 
-int lsl_create(lsl_t *lsl, const lsl_config_t *config, uint8_t *sample_buffer, size_t sample_buffer_len);
+int lsl_create(lsl_t *lsl, const lsl_config_t *config);
 int lsl_start_stream(lsl_t *lsl, net_handle_t fd);
 int lsl_stop_stream(lsl_t *lsl);
 

@@ -15,6 +15,7 @@ int lsl_outlet_create(lsl_outlet_t *outlet, const lsl_outlet_config_t *config, u
 
     // init struct
     outlet->config = *config;
+    outlet->callbacks = (lsl_outlet_callbacks_t) { 0 };
     outlet->sample_buffer = sample_buffer;
 
     return 0;
