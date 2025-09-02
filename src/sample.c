@@ -1,17 +1,18 @@
 #include "tinylsl/sample.h"
 #include "error_macros.h"
 #include <stdbool.h>
+#include <string.h>
 
 int lsl_sample_value_serialize(const lsl_sample_value_t sample_value, const lsl_channel_info_t *channel_info, uint8_t *buf) {
     // put the generic sample value into a uint64 (which will fit all sizes)
     uint64_t value;
     switch (channel_info->format) {
         case LSL_FLOAT32: {
-            value = *((uint32_t *) &sample_value.float32_value);
+            memcpy(&value, &sample_value.float32_value, 4);
             break;
         }
         case LSL_DOUBLE64:
-            value = *((uint64_t *) &sample_value.double64_value);
+            memcpy(&value, &sample_value.double64_value, 8);
             break;
         case LSL_INT32:
             value = (uint64_t) sample_value.int32_value;
