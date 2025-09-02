@@ -43,7 +43,7 @@ int lsl_parse_uint64(lsl_parser_t *parser, uint64_t *value) {
     LSL_PARSE_TOKEN(
         parser,
         *parser->buf == '\r' || *parser->buf == '\n' || *parser->buf == '\t' || *parser->buf == ' ',
-        *parser->buf >= '0' && *parser->buf <= '9',
+        !(*parser->buf == '\r' || *parser->buf == '\n' || *parser->buf == '\t' || *parser->buf == ' '),
         token,
         token_len
     );
