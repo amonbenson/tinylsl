@@ -2,66 +2,61 @@
 
 #include "error_macros.h"
 
-#define LSL_PARSE_UNTIL_EXPR(buf, len, expr) do { \
-    while ((len) > 0) { \
-        if (expr) { \
-            break; \
-        } \
-        (buf)++; \
-        (len)--; \
-    } \
-} while (0)
+void lsl_parser_create(lsl_parser_t *parser, const uint8_t *buf, size_t len) {
+    parser->buf = buf;
+    parser->len = len;
+}
 
-#define LSL_PARSE_TOKEN(buf, len, start_expr, end_expr, token, token_len) do { \
-    LSL_PARSE_UNTIL_EXPR(buf, len, start_expr); \
-    (token) = (buf); \
-    LSL_PARSE_UNTIL_EXPR(buf, len, end_expr); \
-    (token_len) = (buf) - (token); \
-} while(0)
-
-size_t lsl_parse_line(uint8_t **buf, size_t *len, const uint8_t **line) {
-    uint8_t *token;
-    size_t token_len;
+size_t lsl_parse_line(lsl_parser_t *parser, const uint8_t **line) {
+    size_t line_len;
 
     LSL_PARSE_TOKEN(
-        *buf,
-        *len,
-        !(**buf == '\r' || **buf == '\n' || **buf == '\t' || **buf == ' '),
-        **buf == '\r' || **buf == '\n',
+        parser,
+        *parser->buf == '\r' || *parser->buf == '\n' || *parser->buf == '\t' || *parser->buf == ' ',
+        !(*parser->buf == '\r' || *parser->buf == '\n'),
+        *line,
+        line_len
+    );
+
+    return line_len;
+}
+
+size_t lsl_parse_word(lsl_parser_t *parser, const uint8_t **word) {
+    size_t word_len;
+
+    LSL_PARSE_TOKEN(
+        parser,
+        *parser->buf == '\r' || *parser->buf == '\n' || *parser->buf == '\t' || *parser->buf == ' ',
+        !(*parser->buf == '\r' || *parser->buf == '\n' || *parser->buf == '\t' || *parser->buf == ' '),
+        *word,
+        word_len
+    );
+
+    return word_len;
+}
+
+int lsl_parse_uint64(lsl_parser_t *parser, uint64_t *value) {
+    const uint8_t *token;
+    size_t token_len;
+
+    // parse the number token
+    LSL_PARSE_TOKEN(
+        parser,
+        *parser->buf == '\r' || *parser->buf == '\n' || *parser->buf == '\t' || *parser->buf == ' ',
+        *parser->buf >= '0' && *parser->buf <= '9',
         token,
         token_len
     );
+    TRY_OR_RETURN(TRY_ASSERT(token_len > 0), "Number of length 0.");
 
-    return token_len;
-}
-
-size_t lsl_parse_word(uint8_t **buf, size_t *len, const uint8_t **word) {
-    uint8_t *token;
-    size_t token_len;
-
-    LSL_PARSE_TOKEN(
-        *buf,
-        *len,
-        !(**buf == '\r' || **buf == '\n' || **buf == '\t' || **buf == ' '),
-        **buf == '\r' || **buf == '\n' || **buf == '\t' || **buf == ' ',
-        token,
-        token_len
-    );
-
-    return token_len;
-}
-
-int parse_uint(const uint8_t *buf, size_t len, unsigned int *out) {
-    TRY_OR_RETURN(TRY_ASSERT(len > 0 && buf != NULL && out != NULL), "Invalid parameters.");
-
-    unsigned int value = 0;
-
-    while ((len) > 0) {
-        TRY_OR_RETURN(TRY_ASSERT(*buf >= '0' && *buf <= '9'), "Number contains invalid digit: '%c'", *buf);
-        value = value * 10 + *buf - '0';
+    // convert to an actual decimal number
+    *value = 0;
+    while ((token_len) > 0) {
+        TRY_OR_RETURN(TRY_ASSERT(*token >= '0' && *token <= '9'), "Number contains invalid digit: '%c'", *token);
+        *value = *value * 10 + *token - '0';
+        token++;
+        token_len--;
     }
-
-    *out = value;
 
     return 0;
 }

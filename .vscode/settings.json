@@ -11,6 +11,7 @@
         "chrono": "c",
         "functional": "c",
         "numbers": "c",
-        "format": "c"
+        "format": "c",
+        "complex": "c"
     }
 }

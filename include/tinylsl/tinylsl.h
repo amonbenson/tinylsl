@@ -3,21 +3,26 @@
 #include "tinylsl/outlet.h"
 #include "tinylsl/net.h"
 
+#define LSL_METHOD_SHORTINFO "LSL:shortinfo"
+#define LSL_METHOD_FULLINFO "LSL:fullinfo"
+#define LSL_METHOD_TIMEDATA "LSL:timedata"
+#define LSL_METHOD_STREAMFEED "LSL:streamfeed"
+
 typedef struct {
     lsl_outlet_config_t outlet;
 } lsl_config_t;
 
 typedef void (*lsl_lock_cb)(void *ctx);
 typedef void (*lsl_unlock_cb)(void *ctx);
-typedef int (*lsl_tcp_send_cb)(void *ctx, int fd, uint8_t *buf, size_t len);
 typedef int (*lsl_udp_send_cb)(void *ctx, int fd, uint8_t *buf, size_t len, uint32_t remote_address, uint16_t remote_port);
+typedef int (*lsl_tcp_send_cb)(void *ctx, int fd, uint8_t *buf, size_t len);
 
 typedef struct {
     void *ctx;
     lsl_lock_cb lock;
     lsl_unlock_cb unlock;
-    lsl_tcp_send_cb tcp_send;
     lsl_udp_send_cb udp_send;
+    lsl_tcp_send_cb tcp_send;
 } lsl_callbacks_t;
 
 typedef struct {

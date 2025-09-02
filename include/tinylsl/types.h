@@ -20,6 +20,7 @@ typedef enum {
 } lsl_channel_order_t;
 
 extern size_t lsl_integral_sizes[8];
+extern const char *lsl_channel_format_names[];
 
 typedef union {
     float value_float32;
