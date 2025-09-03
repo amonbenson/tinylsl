@@ -12,6 +12,7 @@
         "functional": "c",
         "numbers": "c",
         "format": "c",
-        "complex": "c"
+        "complex": "c",
+        "utils.h": "c"
     }
 }
