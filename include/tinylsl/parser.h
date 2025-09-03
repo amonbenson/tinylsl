@@ -30,3 +30,5 @@ void lsl_parser_create(lsl_parser_t *parser, const uint8_t *buf, size_t len);
 size_t lsl_parse_line(lsl_parser_t *parser, const uint8_t **line);
 size_t lsl_parse_word(lsl_parser_t *parser, const uint8_t **word);
 int lsl_parse_uint64(lsl_parser_t *parser, uint64_t *value);
+
+int lsl_parser_skip_n(lsl_parser_t *parser, size_t n);

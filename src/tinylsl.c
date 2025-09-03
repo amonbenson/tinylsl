@@ -84,6 +84,34 @@ static int lsl_handle_shortinfo(lsl_t *lsl, uint32_t response_address, uint16_t 
     return 0;
 }
 
+static int lsl_handle_streamfeed(lsl_t *lsl, const uint8_t *params, size_t params_len, int version, const uint8_t *stream_uid) {
+    // TODO: validate version and stream uid
+
+    // send outlet stream parameters
+    // TODO: compare with params and negotiate
+    uint8_t response[1024];
+    const lsl_outlet_t *outlet = &lsl->outlet;
+    int response_len = snprintf(
+        (char *) response,
+        sizeof(response),
+        "LSL/110 200 OK\r\n"
+        "UID: 7e1900a9-c56e-442e-be9b-2a58c5953b84\r\n"
+        "Byte-Order: %s\r\n"
+        "Suppress-Subnormals: 0\r\n"
+        "Data-Protocol-Version: 110\r\n",
+        // outlet->config.uid, // TODO: convert to string
+        outlet->config.channel_info.order == LSL_LSB_FIRST ? "1234" : "4321"
+    );
+    TRY_OR_RETURN(TRY_ASSERT(response_len > 0), "Failed to construct response string.");
+    TRY_OR_RETURN(TRY_ASSERT(response_len < sizeof(response)), "Response too large.");
+
+    // send the response
+    LOG_DEBUG("LSL UDP SEND:\r\n%.*s\r\n\r\n", (int) response_len, response);
+    TRY_OR_RETURN(EMIT(&lsl->callbacks, tcp_send, lsl->udp_fd, response, response_len), "Failed to send response.");
+
+    return 0;
+}
+
 static int lsl_handle_packet(lsl_t *lsl, const uint8_t *buf, size_t len, uint32_t remote_address, uint16_t remote_port) {
     lsl_parser_t parser;
     lsl_parser_create(&parser, buf, len);
@@ -112,6 +140,25 @@ static int lsl_handle_packet(lsl_t *lsl, const uint8_t *buf, size_t len, uint32_
         TRY_OR_RETURN(TRY_ASSERT(query_id_len > 0), "Failed to parse query id.");
 
         TRY_OR_RETURN(lsl_handle_shortinfo(lsl, remote_address, source_port, query, query_len, query_id, query_id_len), "Failed to handle shortinfo message");
+    } else if (strncmp((const char *) method, LSL_METHOD_STREAMFEED, method_len) == 0) {
+        // handle streamfeed with default version and stream id
+        lsl_handle_streamfeed(lsl, parser.buf, parser.len, 100, NULL);
+    } else if (strncmp((const char *) method, LSL_METHOD_STREAMFEED "/", MIN(method_len, strlen(LSL_METHOD_STREAMFEED "/"))) == 0) {
+        // move to the method parameters section (still on the same line)
+        lsl_parser_skip_n(&parser, sizeof(LSL_METHOD_STREAMFEED "/"));
+
+        // parse version
+        uint64_t version_u64;
+        TRY_OR_RETURN(lsl_parse_uint64(&parser, &version_u64), "Failed to parse version number.");
+        TRY_OR_RETURN(TRY_ASSERT(version_u64 > 0 && version_u64 <= INT_MAX), "Failed to parse version number: Out of range.");
+        int version = (uint16_t) version_u64;
+
+        // parse stream uid
+        const uint8_t *stream_uid;
+        size_t stream_uid_len = lsl_parse_line(&parser, &stream_uid);
+        TRY_OR_RETURN(TRY_ASSERT(stream_uid_len == 36), "Failed to parse stream uid.");
+
+        lsl_handle_streamfeed(lsl, parser.buf, parser.len, version, stream_uid);
     } else {
         LOG_WARN("Got invalid command method: %.*s", (int) method_len, method);
     }

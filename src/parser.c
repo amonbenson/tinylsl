@@ -60,3 +60,12 @@ int lsl_parse_uint64(lsl_parser_t *parser, uint64_t *value) {
 
     return 0;
 }
+
+int lsl_parser_skip_n(lsl_parser_t *parser, size_t n) {
+    TRY_OR_RETURN(TRY_ASSERT(parser->len >= n), "Buffer not large enough.");
+
+    parser->buf += n;
+    parser->len -= n;
+
+    return 0;
+}
