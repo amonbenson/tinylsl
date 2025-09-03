@@ -10,7 +10,7 @@ DESCRIBE(test_sample, "sample") {
 
     IT("serializes individual values") {
         EXPECT_EQ(lsl_sample_value_serialize(
-            ((lsl_sample_value_t) { .int8_value = 123 }),
+            &((lsl_sample_value_t) { .int8_value = 123 }),
             &((lsl_channel_info_t) {
                 .format = LSL_INT8,
                 .order = LSL_LSB_FIRST,
@@ -21,7 +21,7 @@ DESCRIBE(test_sample, "sample") {
         EXPECT_EQ(buffer[0], 123);
 
         EXPECT_EQ(lsl_sample_value_serialize(
-            ((lsl_sample_value_t) { .int32_value = 0x01234567 }),
+            &((lsl_sample_value_t) { .int32_value = 0x01234567 }),
             &((lsl_channel_info_t) {
                 .format = LSL_INT32,
                 .order = LSL_LSB_FIRST,
@@ -35,7 +35,7 @@ DESCRIBE(test_sample, "sample") {
         EXPECT_EQ(buffer[3], 0x01);
 
         EXPECT_EQ(lsl_sample_value_serialize(
-            ((lsl_sample_value_t) { .int32_value = 0x01234567 }),
+            &((lsl_sample_value_t) { .int32_value = 0x01234567 }),
             &((lsl_channel_info_t) {
                 .format = LSL_INT32,
                 .order = LSL_MSB_FIRST,
@@ -49,7 +49,7 @@ DESCRIBE(test_sample, "sample") {
         EXPECT_EQ(buffer[3], 0x67);
 
         EXPECT_EQ(lsl_sample_value_serialize(
-            ((lsl_sample_value_t) { .float32_value = 2.25 }),
+            &((lsl_sample_value_t) { .float32_value = 2.25 }),
             &((lsl_channel_info_t) {
                 .format = LSL_FLOAT32,
                 .order = LSL_MSB_FIRST,

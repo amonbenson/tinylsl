@@ -90,7 +90,7 @@ static int lsl_handle_streamfeed(lsl_t *lsl, const uint8_t *params, size_t param
     // send outlet stream parameters
     // TODO: compare with params and negotiate
     uint8_t response[1024];
-    const lsl_outlet_t *outlet = &lsl->outlet;
+    lsl_outlet_t *outlet = &lsl->outlet;
     int response_len = snprintf(
         (char *) response,
         sizeof(response),
@@ -105,9 +105,27 @@ static int lsl_handle_streamfeed(lsl_t *lsl, const uint8_t *params, size_t param
     TRY_OR_RETURN(TRY_ASSERT(response_len > 0), "Failed to construct response string.");
     TRY_OR_RETURN(TRY_ASSERT(response_len < sizeof(response)), "Response too large.");
 
-    // send the response
-    LOG_DEBUG("LSL UDP SEND:\r\n%.*s\r\n\r\n", (int) response_len, response);
-    TRY_OR_RETURN(EMIT(&lsl->callbacks, tcp_send, lsl->udp_fd, response, response_len), "Failed to send response.");
+    // send the header response
+    LOG_DEBUG("LSL TCP SEND:\r\n%.*s\r\n\r\n", (int) response_len, response);
+    TRY_OR_RETURN(EMIT(&lsl->callbacks, tcp_send, lsl->tcp_fd, response, response_len), "Failed to send response.");
+
+    // create a test pattern (see https://github.com/sccn/liblsl/blob/dev/src/sample.cpp#L189)
+    lsl_sample_t *sample = lsl_outlet_current_sample(outlet);
+
+    long offsets[] = { 4, 2 };
+    size_t p = 0;
+
+    for (size_t i = 0; i < sizeof(offsets) / sizeof(offsets[0]); i++) {
+        long offset = offsets[i];
+        TRY_OR_RETURN(lsl_sample_assign_test_pattern(sample, &outlet->config.channel_info, offset), "Failed to assign test pattern '%ld'.", offset);
+        TRY_OR_RETURN(lsl_sample_serialize(sample, &outlet->config.channel_info, &response[p], sizeof(response) - p), "Failed to serialize sample");
+
+        p += lsl_sample_serialized_length(sample, &outlet->config.channel_info);
+    }
+
+    // send the test pattern response
+    LOG_DEBUG("LSL TCP SEND: <binary data length %d>\r\n", response_len);
+    TRY_OR_RETURN(EMIT(&lsl->callbacks, tcp_send, lsl->tcp_fd, response, response_len), "Failed to send response.");
 
     return 0;
 }
@@ -145,7 +163,9 @@ static int lsl_handle_packet(lsl_t *lsl, const uint8_t *buf, size_t len, uint32_
         lsl_handle_streamfeed(lsl, parser.buf, parser.len, 100, NULL);
     } else if (strncmp((const char *) method, LSL_METHOD_STREAMFEED "/", MIN(method_len, strlen(LSL_METHOD_STREAMFEED "/"))) == 0) {
         // move to the method parameters section (still on the same line)
-        lsl_parser_skip_n(&parser, sizeof(LSL_METHOD_STREAMFEED "/"));
+        parser.buf = method;
+        parser.len = len + buf - parser.buf;
+        TRY_OR_RETURN(lsl_parser_skip_n(&parser, sizeof(LSL_METHOD_STREAMFEED "/")), "Failed to skip to version number.");
 
         // parse version
         uint64_t version_u64;
@@ -248,6 +268,9 @@ int lsl_tcp_recv(lsl_t * lsl, int fd, const uint8_t *buf, size_t len) {
 
     TRY_OR_CLEANUP(TRY_ASSERT(lsl->tcp_fd == fd), "Incorrect file descriptor.");
     TRY_OR_CLEANUP(TRY_ASSERT(lsl->tcp_remote_address != 0), "No connection was accepted yet.");
+
+    LOG_DEBUG("LSL TCP RECV:\r\n%.*s\r\n\r\n", (int) len, buf);
+    TRY_OR_CLEANUP(lsl_handle_packet(lsl, buf, len, lsl->tcp_remote_address, lsl->tcp_remote_port), "Failed to handle udp packet.");
 
     ret = 0;
 cleanup:
