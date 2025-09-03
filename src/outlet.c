@@ -1,6 +1,6 @@
 #include "tinylsl/outlet.h"
 #include "tinylsl/utils.h"
-#include "error_macros.h"
+#include "macrotools/error.h"
 
 int lsl_outlet_create(lsl_outlet_t *outlet, const lsl_outlet_config_t *config, uint8_t *sample_buffer, size_t sample_buffer_len) {
     // validate configuration

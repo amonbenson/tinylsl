@@ -1,6 +1,6 @@
 #include <string.h>
-#include "test_macros.h"
-#include "log.h"
+#include "macrotools/test.h"
+#include "macrotools/log.h"
 #include "tinylsl/tinylsl.h"
 
 

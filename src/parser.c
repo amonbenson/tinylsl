@@ -1,6 +1,6 @@
 #include "tinylsl/parser.h"
 
-#include "error_macros.h"
+#include "macrotools/error.h"
 
 void lsl_parser_create(lsl_parser_t *parser, const uint8_t *buf, size_t len) {
     parser->buf = buf;

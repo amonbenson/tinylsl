@@ -1,5 +1,5 @@
 #include <string.h>
-#include "test_macros.h"
+#include "macrotools/test.h"
 #include "tinylsl/parser.h"
 
 

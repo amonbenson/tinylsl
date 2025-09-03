@@ -1,5 +1,5 @@
 #include "tinylsl/sample.h"
-#include "error_macros.h"
+#include "macrotools/error.h"
 #include <stdbool.h>
 #include <string.h>
 

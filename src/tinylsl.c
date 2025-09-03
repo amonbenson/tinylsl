@@ -3,7 +3,7 @@
 #include "tinylsl/tinylsl.h"
 #include "tinylsl/utils.h"
 #include "tinylsl/parser.h"
-#include "error_macros.h"
+#include "macrotools/error.h"
 
 static int lsl_outlet_handle_sample_available(void *ctx, lsl_outlet_t *outlet, lsl_sample_t *sample) {
     lsl_t *lsl = (lsl_t *) ctx;
