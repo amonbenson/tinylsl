@@ -16,15 +16,15 @@ DESCRIBE(test_parser, "parser") {
 
         line_len = lsl_parse_line(&parser, &line);
         EXPECT_EQ(line_len, 14);
-        EXPECT_EQ(strncmp((const char *) line, "the first line", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "the first line", 14);
 
         line_len = lsl_parse_line(&parser, &line);
         EXPECT_EQ(line_len, 15);
-        EXPECT_EQ(strncmp((const char *) line, "the second line", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "the second line", 15);
 
         line_len = lsl_parse_line(&parser, &line);
         EXPECT_EQ(line_len, 14);
-        EXPECT_EQ(strncmp((const char *) line, "the third line", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "the third line", 14);
 
         // end of text, last line should be stripped completely
         line_len = lsl_parse_line(&parser, &line);
@@ -48,19 +48,19 @@ DESCRIBE(test_parser, "parser") {
 
         line_len = lsl_parse_word(&parser, &line);
         EXPECT_EQ(line_len, 3);
-        EXPECT_EQ(strncmp((const char *) line, "one", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "one", 3);
 
         line_len = lsl_parse_word(&parser, &line);
         EXPECT_EQ(line_len, 3);
-        EXPECT_EQ(strncmp((const char *) line, "two", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "two", 3);
 
         line_len = lsl_parse_word(&parser, &line);
         EXPECT_EQ(line_len, 5);
-        EXPECT_EQ(strncmp((const char *) line, "three", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "three", 5);
 
         line_len = lsl_parse_word(&parser, &line);
         EXPECT_EQ(line_len, 4);
-        EXPECT_EQ(strncmp((const char *) line, "four", line_len), 0);
+        EXPECT_BUFFER_EQ(line, "four", 4);
 
         line_len = lsl_parse_word(&parser, &line);
         EXPECT_EQ(line_len, 0);

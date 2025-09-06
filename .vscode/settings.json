@@ -13,6 +13,7 @@
         "numbers": "c",
         "format": "c",
         "complex": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "random": "c"
     }
 }
