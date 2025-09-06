@@ -43,8 +43,7 @@ typedef struct {
 } lsl_t;
 
 int lsl_create(lsl_t *lsl, const lsl_config_t *config);
-int lsl_start_stream(lsl_t *lsl, net_handle_t fd);
-int lsl_stop_stream(lsl_t *lsl);
+int lsl_push_values(lsl_t *lsl);
 
 int lsl_udp_connect(lsl_t *lsl, int fd, uint16_t local_port);
 int lsl_udp_recv(lsl_t * lsl, int fd, const uint8_t *buf, size_t len, uint32_t remote_address, uint16_t remote_port);

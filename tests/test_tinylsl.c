@@ -193,6 +193,63 @@ DESCRIBE(test_tinylsl, "tinylsl") {
         EXPECT_BUFFER_EQ(&tcp_send_buffer[header_len + sample_len + 9 + 1 * 4], s0, 4);
         lsl_sample_value_serialize(&((lsl_sample_value_t) { .float32_value = -9.0f }), &lsl.outlet.config.channel_info, s0);
         EXPECT_BUFFER_EQ(&tcp_send_buffer[header_len + sample_len + 9 + 7 * 4], s0, 4);
+    }
 
+    IT("pushes sample data via the streamfeed") {
+        EXPECT_EQ(lsl_create(&lsl, &lsl_config), 0);
+        lsl.callbacks.tcp_send = handle_tcp_send;
+
+        // connect the servers
+        EXPECT_EQ(lsl_tcp_connect(&lsl, 1, 16571), 0);
+        EXPECT_EQ(lsl_udp_connect(&lsl, 2, 16572), 0);
+
+        // accept tcp connection
+        EXPECT_EQ(lsl_tcp_accept(&lsl, 1, 0xC0A80002, 16591), 0);
+
+        // send a streamfeed request
+        const char *req = "LSL:streamfeed/110 475919ea-7a7e-4b96-88d1-95197d9adb19\r\n"
+            "Native-Byte-Order: 1234\r\n"
+            "Endian-Performance: 1.24426e+07\r\n"
+            "Has-IEEE754-Floats: 1\r\n"
+            "Supports-Subnormals: 1\r\n"
+            "Value-Size: 4\r\n"
+            "Data-Protocol-Version: 110\r\n"
+            "Max-Buffer-Length: 1000\r\n"
+            "Max-Chunk-Length: 1\r\n"
+            "Hostname: bonn\r\n"
+            "Source-Id: ddadfd62\r\n"
+            "Session-Id: default\r\n"
+            "\r\n";
+        EXPECT_EQ(lsl_tcp_recv(&lsl, 1, (const uint8_t *) req, strlen(req)), 0);
+
+        // set the sample data
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 0, 1.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 1, 2.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 2, 3.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 3, 4.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 4, 5.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 5, 6.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 6, 7.0f);
+        lsl_outlet_set_channel_value_float(&lsl.outlet, 7, 8.0f);
+
+        // reset the tcp send buffer and push a sample
+        tcp_send_info = (struct tcp_send_info) { 0 };
+        tcp_send_len = 0;
+        EXPECT_EQ(lsl_push_values(&lsl), 0);
+
+        // check the received length
+        const size_t sample_len = 1 + 8 + 8 * 4; // 1 byte timestamp type + 8 bytes double timestamp + 8 channels * 4 bytes float data
+        EXPECT_UNSIGNED_GE(tcp_send_len, sample_len);
+
+        // check the sample data
+        uint8_t s0[4];
+        EXPECT_EQ(tcp_send_buffer[0], 2); // non-deduced timestamp
+        // skip timestamp validation for now
+        lsl_sample_value_serialize(&((lsl_sample_value_t) { .float32_value = 1.0f }), &lsl.outlet.config.channel_info, s0);
+        EXPECT_BUFFER_EQ(&tcp_send_buffer[9 + 0 * 4], s0, 4);
+        lsl_sample_value_serialize(&((lsl_sample_value_t) { .float32_value = 2.0f }), &lsl.outlet.config.channel_info, s0);
+        EXPECT_BUFFER_EQ(&tcp_send_buffer[9 + 1 * 4], s0, 4);
+        lsl_sample_value_serialize(&((lsl_sample_value_t) { .float32_value = 8.0f }), &lsl.outlet.config.channel_info, s0);
+        EXPECT_BUFFER_EQ(&tcp_send_buffer[9 + 7 * 4], s0, 4);
     }
 }

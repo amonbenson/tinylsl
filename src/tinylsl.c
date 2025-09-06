@@ -186,6 +186,28 @@ static int lsl_handle_packet(lsl_t *lsl, const uint8_t *buf, size_t len, uint32_
     return 0;
 }
 
+int lsl_push_values(lsl_t *lsl) {
+    int ret = 0;
+    EMIT(&lsl->callbacks, lock);
+
+    TRY_OR_CLEANUP(TRY_ASSERT(lsl->tcp_fd != -1), "TCP stream currently not active.");
+
+    // serialize the current sample
+    const lsl_sample_t *sample = lsl_outlet_current_sample(&lsl->outlet);
+    uint8_t buf[128];
+    TRY_OR_CLEANUP(lsl_sample_serialize(sample, &lsl->outlet.config.channel_info, buf, sizeof(buf)), "Failed to serialize sample");
+    const size_t len = lsl_sample_serialized_length(sample, &lsl->outlet.config.channel_info);
+
+    // send the response
+    LOG_TRACE("LSL TCP SEND: <binary data of length %zu>", len);
+    TRY_OR_CLEANUP(EMIT(&lsl->callbacks, tcp_send, lsl->tcp_fd, buf, len), "Failed to send response.");
+
+    ret = 0;
+cleanup:
+    EMIT(&lsl->callbacks, unlock);
+    return ret;
+}
+
 int lsl_udp_connect(lsl_t *lsl, int fd, uint16_t local_port) {
     int ret = 0;
     EMIT(&lsl->callbacks, lock);
