@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -Werror -O3 -Imacrotools/include -I$(INCLUDE_DIR)
+CFLAGS = -Wall -Werror -O3 -Ilib/macrotools/include -I$(INCLUDE_DIR)
 
-MACROTOOLS_DIR = macrotools
+MACROTOOLS_DIR = lib/macrotools
 
 BUILD_DIR = build
 SOURCE_DIR = src
